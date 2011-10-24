@@ -87,7 +87,7 @@
       body.CreateShape(shape);
       if (dynamic) {
         body.SetMassFromShapes();
-        body.linearDamping = 1.0;
+        body.m_linearDamping = 1;
       }
       result = {
         mesh: mesh,
