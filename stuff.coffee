@@ -3,7 +3,8 @@ $ ->
     origin = V 0,0
     window_size = -> V innerWidth, innerHeight
 
-    player_start = V 5,5
+    time_step = 1.0/60.0
+    constraint_iterations = 10
     gravity = V 0.0, -10.0
     player_friction = 20
     default_friction = 5
@@ -84,10 +85,7 @@ $ ->
         position:V(-5, -5)
     player2 = make_square
         position:V(5, 5)
-
-    time_step = 1.0/60.0
-    constraint_iterations = 10
-
+    
 
     update = ->
         ###
