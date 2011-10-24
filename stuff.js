@@ -1,9 +1,14 @@
 (function() {
+  var __slice = Array.prototype.slice;
   $(function() {
     var animate, camera, camera_radius, constraint_iterations, do_sleep, gravity, make_square, player, renderer, scene, time_step, update, wall, world, world_box;
-    make_square = function(width, height, position, dynamic) {
+    make_square = function(size, position, dynamic) {
       var body, body_definition, geometry, material, mesh, shape;
-      geometry = new THREE.CubeGeometry(width, height, 100);
+      geometry = (function(func, args, ctor) {
+        ctor.prototype = func.prototype;
+        var child = new ctor, result = func.apply(child, args);
+        return typeof result === "object" ? result : child;
+      })(THREE.CubeGeometry, __slice.call(size.components()).concat([100]), function() {});
       material = new THREE.MeshBasicMaterial({
         color: 0xff0000,
         wireframe: true
@@ -12,7 +17,7 @@
       mesh.position = position.three();
       scene.add(mesh);
       shape = new b2PolygonDef();
-      shape.SetAsBox(width / 2.0, height / 2.0);
+      shape.SetAsBox.apply(shape, size.scale(0.5).components());
       if (dynamic) {
         shape.density = 1.0;
         shape.friction = 0.3;
@@ -46,8 +51,8 @@
     gravity = V(0.0, -10.0);
     do_sleep = true;
     world = new b2World(world_box, gravity, do_sleep);
-    wall = make_square(500, 1, V(0, -5));
-    player = make_square(1, 1, V(0, 0), true);
+    wall = make_square(V(500, 1), V(0, -5));
+    player = make_square(V(1, 1), V(0, 0), true);
     time_step = 1.0 / 60.0;
     constraint_iterations = 10;
     update = function() {

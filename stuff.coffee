@@ -1,13 +1,13 @@
 $ ->
-    make_square = (width, height, position, dynamic) ->
-        geometry = new THREE.CubeGeometry width, height, 100
+    make_square = (size, position, dynamic) ->
+        geometry = new THREE.CubeGeometry size.components()..., 100
         material = new THREE.MeshBasicMaterial color:0xff0000, wireframe:true
         mesh = new THREE.Mesh geometry, material
         mesh.position = position.three()
         scene.add mesh
 
         shape = new b2PolygonDef()
-        shape.SetAsBox width/2.0, height/2.0
+        shape.SetAsBox size.scale(0.5).components()...
         if dynamic
             shape.density = 1.0
             shape.friction = 0.3
@@ -44,8 +44,8 @@ $ ->
     do_sleep = true
     world = new b2World world_box, gravity, do_sleep
     
-    wall = make_square 500, 1, V(0, -5)
-    player = make_square 1, 1, V(0, 0), true
+    wall = make_square V(500, 1), V(0, -5)
+    player = make_square V(1, 1), V(0, 0), true
 
     time_step = 1.0/60.0
     constraint_iterations = 10
