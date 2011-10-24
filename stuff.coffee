@@ -1,10 +1,9 @@
 $ ->
-    make_square = (width, height, x, y, dynamic) ->
+    make_square = (width, height, position, dynamic) ->
         geometry = new THREE.CubeGeometry width, height, 100
         material = new THREE.MeshBasicMaterial color:0xff0000, wireframe:true
         mesh = new THREE.Mesh geometry, material
-        mesh.position.x = x
-        mesh.position.y = y
+        mesh.position = position.three()
         scene.add mesh
 
         shape = new b2PolygonDef()
@@ -13,7 +12,7 @@ $ ->
             shape.density = 1.0
             shape.friction = 0.3
         body_definition = new b2BodyDef()
-        body_definition.position.Set x,y
+        body_definition.position = position
 
         body = world.CreateBody body_definition
         body.CreateShape shape
@@ -39,14 +38,14 @@ $ ->
 
     # physics
     world_box = new b2AABB()
-    world_box.lowerBound.Set -1000.0, -1000.0
-    world_box.upperBound.Set 1000.0, 1000.0
-    gravity = new b2Vec2 0.0, -10.0
+    world_box.lowerBound = V -1000.0, -1000.0
+    world_box.upperBound = V 1000.0, 1000.0
+    gravity = V 0.0, -10.0
     do_sleep = true
     world = new b2World world_box, gravity, do_sleep
     
-    wall = make_square 500, 1, 0, -5
-    player = make_square 1, 1, 0, 0, true
+    wall = make_square 500, 1, V(0, -5)
+    player = make_square 1, 1, V(0, 0), true
 
     time_step = 1.0/60.0
     constraint_iterations = 10
@@ -61,11 +60,8 @@ $ ->
             player.body.ApplyTorque -torque
             #player.body.ApplyForce new b2Vec2(10,0), player.body.GetPosition()
 
-
         world.Step time_step, constraint_iterations
-        position = player.body.GetPosition()
-        player.mesh.position.x = position.x
-        player.mesh.position.y = position.y
+        player.mesh.position = player.body.GetPosition().three()
         player.mesh.rotation.z = player.body.GetAngle()
         renderer.render scene, camera
 

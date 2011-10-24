@@ -48,6 +48,13 @@
   Vector.prototype.minus = function(other) {
     return this.plus(other.scale(-1));
   };
+  Vector.prototype.three = function() {
+    return (function(func, args, ctor) {
+      ctor.prototype = func.prototype;
+      var child = new ctor, result = func.apply(child, args);
+      return typeof result === "object" ? result : child;
+    })(THREE.Vector3, this.components(), function() {});
+  };
   window.V = function() {
     return (function(func, args, ctor) {
       ctor.prototype = func.prototype;
