@@ -1,9 +1,8 @@
 $ ->
-    world_size = V 2000, 100
-    world_padding = 50
     world_padder = V world_padding, world_padding
     origin = V 0,0
     window_size = -> V innerWidth, innerHeight
+
     player_start = V 5,5
     gravity = V 0.0, -10.0
     player_friction = 20
@@ -11,7 +10,10 @@ $ ->
     torque = 50
     max_angular_velocity = 10
     default_size = V 1,1
-    #default_properties = {size:default_size, position:origin, dynamic:true, friction:friction}
+
+    world_size = V 2000, 2000
+    world_padding = 50
+    gravity = origin
 
     make_heap = (location) ->
         size = 1
@@ -73,36 +75,22 @@ $ ->
 
     # physics
     world_box = new b2AABB()
-    world_box.lowerBound = V -1000.0, -1000.0
-    world_box.upperBound = V 1000.0, 1000.0
-    gravity = V 0.0, -10.0
+    world_box.lowerBound = world_size.scale(-1)
+    world_box.upperBound = world_size
     do_sleep = true
     world = new b2World world_box, gravity, do_sleep
     
-    wall = make_square
-        size:V(500, 1)
-        position:V(0, -5)
-        dynamic:false
-    player = make_square 
-        position:V(0, 0)
-    make_level()
-
-    ###
-    world_box.lowerBound = origin.minus world_padder
-    world_box.upperBound = world_size.plus world_padder
-    do_sleep = true
-    world = new b2World world_box, gravity, do_sleep
-    
-    floor = make_square world_size.x, 1, origin.plus(V world_size.x,0).components()...
-    player = make_square 1, 1, player_start.components()..., true
-    make_level()
-    ###
+    player1 = make_square
+        position:V(-5, -5)
+    player2 = make_square
+        position:V(5, 5)
 
     time_step = 1.0/60.0
     constraint_iterations = 10
 
 
     update = ->
+        ###
         angular_velocity = player.body.GetAngularVelocity()
         if pressed_keys.right and angular_velocity < max_angular_velocity
             player.body.ApplyTorque torque
@@ -112,10 +100,12 @@ $ ->
             #player.body.ApplyForce new b2Vec2(10,0), player.body.GetPosition()
         if pressed_keys.space
             player.body.ApplyImpulse V(10,0), player.body.GetPosition()
+        ###
 
         world.Step time_step, constraint_iterations
 
-        camera.position = player.body.GetPosition().three()
+        center = player1.body.GetPosition().plus player2.body.GetPosition()
+        camera.position = center.three()
 
         for item in sync_list
             item.mesh.position = item.body.GetPosition().three()
