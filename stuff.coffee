@@ -18,6 +18,45 @@ $ ->
     world_padding = 50
     gravity = origin
 
+    force = 25
+
+    cardinals =
+        left:V(-1,0)
+        right:V(1,0)
+        up:V(0,1)
+        down:V(0,-1)
+
+    if use_dvorak
+        player1_controls =
+            left:'left'
+            right:'right'
+            down:'down'
+            up:'up'
+            clockwise:'shift'
+            counter_clockwise:'z'
+        player2_controls =
+            left:'a'
+            right:'e'
+            down:'o'
+            up:','
+            clockwise:'.'
+            counter_clockwise:'\''
+    else
+        player1_controls =
+            left:'left'
+            right:'right'
+            down:'down'
+            up:'up'
+            clockwise:'shift'
+            counter_clockwise:'/'
+        player2_controls =
+            left:'a'
+            right:'d'
+            down:'o'
+            up:'w'
+            clockwise:'e'
+            counter_clockwise:'q'
+        
     make_heap = (location) ->
         size = 1
         elevation = 3
@@ -118,45 +157,6 @@ $ ->
 
 
     update = ->
-        force = 25
-
-        cardinals =
-            left:V(-1,0)
-            right:V(1,0)
-            up:V(0,1)
-            down:V(0,-1)
-
-        if use_dvorak
-            player1_controls =
-                left:'left'
-                right:'right'
-                down:'down'
-                up:'up'
-                clockwise:'shift'
-                counter_clockwise:'z'
-            player2_controls =
-                left:'a'
-                right:'e'
-                down:'o'
-                up:','
-                clockwise:'.'
-                counter_clockwise:'\''
-        else
-            player1_controls =
-                left:'left'
-                right:'right'
-                down:'down'
-                up:'up'
-                clockwise:'shift'
-                counter_clockwise:'/'
-            player2_controls =
-                left:'a'
-                right:'d'
-                down:'o'
-                up:'w'
-                clockwise:'e'
-                counter_clockwise:'q'
-            
         for key, direction of cardinals
             if pressed_keys[player1_controls[key]]
                 player1.body.ApplyForce direction.scale(force), player1.body.GetPosition()

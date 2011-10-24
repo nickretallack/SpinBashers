@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, use_dvorak, variance, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, default_color, default_friction, default_size, do_sleep, force, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, renderer, scene, sync_list, time_step, torque, update, use_dvorak, variance, window_size, world, world_box, world_padder, world_padding, world_size;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -20,6 +20,48 @@
     world_size = V(2000, 2000);
     world_padding = 50;
     gravity = origin;
+    force = 25;
+    cardinals = {
+      left: V(-1, 0),
+      right: V(1, 0),
+      up: V(0, 1),
+      down: V(0, -1)
+    };
+    if (use_dvorak) {
+      player1_controls = {
+        left: 'left',
+        right: 'right',
+        down: 'down',
+        up: 'up',
+        clockwise: 'shift',
+        counter_clockwise: 'z'
+      };
+      player2_controls = {
+        left: 'a',
+        right: 'e',
+        down: 'o',
+        up: ',',
+        clockwise: '.',
+        counter_clockwise: '\''
+      };
+    } else {
+      player1_controls = {
+        left: 'left',
+        right: 'right',
+        down: 'down',
+        up: 'up',
+        clockwise: 'shift',
+        counter_clockwise: '/'
+      };
+      player2_controls = {
+        left: 'a',
+        right: 'd',
+        down: 'o',
+        up: 'w',
+        clockwise: 'e',
+        counter_clockwise: 'q'
+      };
+    }
     make_heap = function(location) {
       var elevation, index, size, _results;
       size = 1;
@@ -146,49 +188,7 @@
     };
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
-      var cardinals, center, direction, force, item, key, player1_controls, player1_position, player2_controls, player2_position, tangent, _i, _len;
-      force = 25;
-      cardinals = {
-        left: V(-1, 0),
-        right: V(1, 0),
-        up: V(0, 1),
-        down: V(0, -1)
-      };
-      if (use_dvorak) {
-        player1_controls = {
-          left: 'left',
-          right: 'right',
-          down: 'down',
-          up: 'up',
-          clockwise: 'shift',
-          counter_clockwise: 'z'
-        };
-        player2_controls = {
-          left: 'a',
-          right: 'e',
-          down: 'o',
-          up: ',',
-          clockwise: '.',
-          counter_clockwise: '\''
-        };
-      } else {
-        player1_controls = {
-          left: 'left',
-          right: 'right',
-          down: 'down',
-          up: 'up',
-          clockwise: 'shift',
-          counter_clockwise: '/'
-        };
-        player2_controls = {
-          left: 'a',
-          right: 'd',
-          down: 'o',
-          up: 'w',
-          clockwise: 'e',
-          counter_clockwise: 'q'
-        };
-      }
+      var center, direction, item, key, player1_position, player2_position, tangent, _i, _len;
       for (key in cardinals) {
         direction = cardinals[key];
         if (pressed_keys[player1_controls[key]]) {
