@@ -98,7 +98,7 @@ $ ->
     variance = 30
     for index in [0..50]
         make_square
-            position:V(Math.random()*variance, Math.random()*variance)
+            position:V((Math.random()-0.5)*variance, (Math.random()-0.5)*variance)
             color:0x00ff00
 
     make_line = (point1, point2) ->
@@ -136,7 +136,7 @@ $ ->
             tangent = V -direction.y, direction.x
             player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
         if pressed_keys.right
-            tangent = V direction.y, -direction.x 
+            tangent = V direction.y, -direction.x
             player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
 
         world.Step time_step, constraint_iterations

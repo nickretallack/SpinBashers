@@ -125,7 +125,7 @@
     variance = 30;
     for (index = 0; index <= 50; index++) {
       make_square({
-        position: V(Math.random() * variance, Math.random() * variance),
+        position: V((Math.random() - 0.5) * variance, (Math.random() - 0.5) * variance),
         color: 0x00ff00
       });
     }
