@@ -6,19 +6,31 @@ $ ->
     window_size = -> V innerWidth, innerHeight
     player_start = V 5,5
     gravity = V 0.0, -10.0
+    player_friction = 20
+    default_friction = 5
+    torque = 50
+    max_angular_velocity = 10
+    default_size = V 1,1
+    #default_properties = {size:default_size, position:origin, dynamic:true, friction:friction}
 
     make_heap = (location) ->
         size = 1
         elevation = 3
         for index in [0..10]
-            make_square V(size, size), V(location, index*2), true
+            make_square 
+                position:V(location, index*2)
 
     make_level = ->
         make_heap 2
 
     sync_list = []
 
-    make_square = (size, position, dynamic) ->
+    make_square = ({size, position, friction, dynamic}) ->
+        size ?= default_size
+        position ?= origin
+        friction ?= default_friction
+        dynamic ?= true
+
         geometry = new THREE.CubeGeometry size.components()..., 100
         material = new THREE.MeshBasicMaterial color:0xff0000, wireframe:true
         mesh = new THREE.Mesh geometry, material
@@ -29,7 +41,7 @@ $ ->
         shape.SetAsBox size.scale(0.5).components()...
         if dynamic
             shape.density = 1.0
-            shape.friction = 0.3
+            shape.friction = friction
         body_definition = new b2BodyDef()
         body_definition.position = position
 
@@ -67,8 +79,12 @@ $ ->
     do_sleep = true
     world = new b2World world_box, gravity, do_sleep
     
-    wall = make_square V(500, 1), V(0, -5)
-    player = make_square V(1, 1), V(0, 0), true
+    wall = make_square
+        size:V(500, 1)
+        position:V(0, -5)
+        dynamic:false
+    player = make_square 
+        position:V(0, 0)
     make_level()
 
     ###
@@ -87,13 +103,15 @@ $ ->
 
 
     update = ->
-        torque = 8
-        if pressed_keys.right
+        angular_velocity = player.body.GetAngularVelocity()
+        if pressed_keys.right and angular_velocity < max_angular_velocity
             player.body.ApplyTorque torque
             #player.body.ApplyForce new b2Vec2(-10,0), player.body.GetPosition()
-        if pressed_keys.left
+        if pressed_keys.left and angular_velocity > -max_angular_velocity
             player.body.ApplyTorque -torque
             #player.body.ApplyForce new b2Vec2(10,0), player.body.GetPosition()
+        if pressed_keys.space
+            player.body.ApplyImpulse V(10,0), player.body.GetPosition()
 
         world.Step time_step, constraint_iterations
 

@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, constraint_iterations, do_sleep, gravity, make_heap, make_level, make_square, origin, player, player_start, renderer, scene, sync_list, time_step, update, wall, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, constraint_iterations, default_friction, default_size, do_sleep, gravity, make_heap, make_level, make_square, max_angular_velocity, origin, player, player_friction, player_start, renderer, scene, sync_list, time_step, torque, update, wall, window_size, world, world_box, world_padder, world_padding, world_size;
     world_size = V(2000, 100);
     world_padding = 50;
     world_padder = V(world_padding, world_padding);
@@ -11,13 +11,20 @@
     };
     player_start = V(5, 5);
     gravity = V(0.0, -10.0);
+    player_friction = 20;
+    default_friction = 5;
+    torque = 50;
+    max_angular_velocity = 10;
+    default_size = V(1, 1);
     make_heap = function(location) {
       var elevation, index, size, _results;
       size = 1;
       elevation = 3;
       _results = [];
       for (index = 0; index <= 10; index++) {
-        _results.push(make_square(V(size, size), V(location, index * 2), true));
+        _results.push(make_square({
+          position: V(location, index * 2)
+        }));
       }
       return _results;
     };
@@ -25,8 +32,29 @@
       return make_heap(2);
     };
     sync_list = [];
-    make_square = function(size, position, dynamic) {
-      var body, body_definition, geometry, material, mesh, result, shape;
+    make_square = function(_arg) {
+      var body, body_definition, dynamic, friction, geometry, material, mesh, position, result, shape, size;
+      size = _arg.size, position = _arg.position, friction = _arg.friction, dynamic = _arg.dynamic;
+            if (size != null) {
+        size;
+      } else {
+        size = default_size;
+      };
+            if (position != null) {
+        position;
+      } else {
+        position = origin;
+      };
+            if (friction != null) {
+        friction;
+      } else {
+        friction = default_friction;
+      };
+            if (dynamic != null) {
+        dynamic;
+      } else {
+        dynamic = true;
+      };
       geometry = (function(func, args, ctor) {
         ctor.prototype = func.prototype;
         var child = new ctor, result = func.apply(child, args);
@@ -43,7 +71,7 @@
       shape.SetAsBox.apply(shape, size.scale(0.5).components());
       if (dynamic) {
         shape.density = 1.0;
-        shape.friction = 0.3;
+        shape.friction = friction;
       }
       body_definition = new b2BodyDef();
       body_definition.position = position;
@@ -76,8 +104,14 @@
     gravity = V(0.0, -10.0);
     do_sleep = true;
     world = new b2World(world_box, gravity, do_sleep);
-    wall = make_square(V(500, 1), V(0, -5));
-    player = make_square(V(1, 1), V(0, 0), true);
+    wall = make_square({
+      size: V(500, 1),
+      position: V(0, -5),
+      dynamic: false
+    });
+    player = make_square({
+      position: V(0, 0)
+    });
     make_level();
     /*
         world_box.lowerBound = origin.minus world_padder
@@ -92,13 +126,16 @@
     time_step = 1.0 / 60.0;
     constraint_iterations = 10;
     update = function() {
-      var item, torque, _i, _len;
-      torque = 8;
-      if (pressed_keys.right) {
+      var angular_velocity, item, _i, _len;
+      angular_velocity = player.body.GetAngularVelocity();
+      if (pressed_keys.right && angular_velocity < max_angular_velocity) {
         player.body.ApplyTorque(torque);
       }
-      if (pressed_keys.left) {
+      if (pressed_keys.left && angular_velocity > -max_angular_velocity) {
         player.body.ApplyTorque(-torque);
+      }
+      if (pressed_keys.space) {
+        player.body.ApplyImpulse(V(10, 0), player.body.GetPosition());
       }
       world.Step(time_step, constraint_iterations);
       camera.position = player.body.GetPosition().three();
