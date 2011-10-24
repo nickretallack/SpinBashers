@@ -101,6 +101,20 @@ $ ->
             position:V(Math.random()*variance, Math.random()*variance)
             color:0x00ff00
 
+    make_line = (point1, point2) ->
+        geometry = new THREE.Geometry()
+        geometry.vertices.push new THREE.Vertex point1.three()
+        geometry.vertices.push new THREE.Vertex point2.three()
+        material = new THREE.LineBasicMaterial
+            color:0xbbbbbb
+            lineWidth:5
+        mesh = new THREE.Line geometry, material
+        mesh.dynamic = true
+        scene.add mesh
+        mesh
+
+    line = make_line player1.body.GetPosition(), player2.body.GetPosition()
+
 
     update = ->
         force = 10
@@ -124,6 +138,10 @@ $ ->
         for item in sync_list
             item.mesh.position = item.body.GetPosition().three()
             item.mesh.rotation.z = item.body.GetAngle()
+
+        line.geometry.vertices[0].position = player1.body.GetPosition().three()
+        line.geometry.vertices[1].position = player2.body.GetPosition().three()
+        line.geometry.__dirtyVertices = true
 
         renderer.render scene, camera
 

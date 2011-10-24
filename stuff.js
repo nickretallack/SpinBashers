@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, index, joint, joint_definition, make_heap, make_level, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, variance, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, variance, window_size, world, world_box, world_padder, world_padding, world_size;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -129,6 +129,21 @@
         color: 0x00ff00
       });
     }
+    make_line = function(point1, point2) {
+      var geometry, material, mesh;
+      geometry = new THREE.Geometry();
+      geometry.vertices.push(new THREE.Vertex(point1.three()));
+      geometry.vertices.push(new THREE.Vertex(point2.three()));
+      material = new THREE.LineBasicMaterial({
+        color: 0xbbbbbb,
+        lineWidth: 5
+      });
+      mesh = new THREE.Line(geometry, material);
+      mesh.dynamic = true;
+      scene.add(mesh);
+      return mesh;
+    };
+    line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
       var cardinals, center, direction, force, item, key, player1_position, player2_position, _i, _len;
       force = 10;
@@ -154,6 +169,9 @@
         item.mesh.position = item.body.GetPosition().three();
         item.mesh.rotation.z = item.body.GetAngle();
       }
+      line.geometry.vertices[0].position = player1.body.GetPosition().three();
+      line.geometry.vertices[1].position = player2.body.GetPosition().three();
+      line.geometry.__dirtyVertices = true;
       return renderer.render(scene, camera);
     };
     animate = function() {
