@@ -95,6 +95,13 @@ $ ->
         player1.body.GetPosition(), player2.body.GetPosition()
     joint = world.CreateJoint joint_definition
 
+    variance = 30
+    for index in [0..50]
+        make_square
+            position:V(Math.random()*variance, Math.random()*variance)
+            color:0x00ff00
+
+
     update = ->
         force = 10
         cardinals =

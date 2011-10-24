@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, joint, joint_definition, make_heap, make_level, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, index, joint, joint_definition, make_heap, make_level, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, variance, window_size, world, world_box, world_padder, world_padding, world_size;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -122,6 +122,13 @@
     joint_definition = new b2DistanceJointDef();
     joint_definition.Initialize(player1.body, player2.body, player1.body.GetPosition(), player2.body.GetPosition());
     joint = world.CreateJoint(joint_definition);
+    variance = 30;
+    for (index = 0; index <= 50; index++) {
+      make_square({
+        position: V(Math.random() * variance, Math.random() * variance),
+        color: 0x00ff00
+      });
+    }
     update = function() {
       var cardinals, center, direction, force, item, key, player1_position, player2_position, _i, _len;
       force = 10;
