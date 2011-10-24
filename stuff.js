@@ -1,13 +1,13 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, use_cardinals, variance, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, constraint_iterations, default_color, default_friction, default_size, do_sleep, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player2, player_friction, renderer, scene, sync_list, time_step, torque, update, use_dvorak, variance, window_size, world, world_box, world_padder, world_padding, world_size;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
       return V(innerWidth, innerHeight);
     };
-    use_cardinals = true;
+    use_dvorak = true;
     time_step = 1.0 / 60.0;
     constraint_iterations = 10;
     gravity = V(0.0, -10.0);
@@ -146,61 +146,82 @@
     };
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
-      var cardinals, center, direction, force, item, key, player1_position, player2_controls, player2_key, player2_position, tangent, _i, _j, _len, _len2, _ref;
+      var cardinals, center, direction, force, item, key, player1_controls, player1_position, player2_controls, player2_position, tangent, _i, _len;
       force = 25;
-      if (use_cardinals) {
-        cardinals = {
-          left: V(-1, 0),
-          right: V(1, 0),
-          up: V(0, 1),
-          down: V(0, -1)
+      cardinals = {
+        left: V(-1, 0),
+        right: V(1, 0),
+        up: V(0, 1),
+        down: V(0, -1)
+      };
+      if (use_dvorak) {
+        player1_controls = {
+          left: 'left',
+          right: 'right',
+          down: 'down',
+          up: 'up',
+          clockwise: 'shift',
+          counter_clockwise: 'z'
         };
         player2_controls = {
-          left: ['a'],
-          right: ['d', 'e'],
-          up: ['w', ','],
-          down: ['s', 'o']
+          left: 'a',
+          right: 'e',
+          down: 'o',
+          up: ',',
+          clockwise: '.',
+          counter_clockwise: '\''
         };
-        for (key in cardinals) {
-          direction = cardinals[key];
-          if (pressed_keys[key]) {
-            player1.body.ApplyForce(direction.scale(force), player1.body.GetPosition());
-          }
-          _ref = player2_controls[key];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            player2_key = _ref[_i];
-            if (pressed_keys[player2_key]) {
-              player2.body.ApplyForce(direction.scale(force), player2.body.GetPosition());
-              break;
-            }
-          }
-        }
       } else {
-        direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize();
-        if (pressed_keys.left) {
-          tangent = V(-direction.y, direction.x);
-          player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
+        player1_controls = {
+          left: 'left',
+          right: 'right',
+          down: 'down',
+          up: 'up',
+          clockwise: 'shift',
+          counter_clockwise: '/'
+        };
+        player2_controls = {
+          left: 'a',
+          right: 'd',
+          down: 'o',
+          up: 'w',
+          clockwise: 'e',
+          counter_clockwise: 'q'
+        };
+      }
+      for (key in cardinals) {
+        direction = cardinals[key];
+        if (pressed_keys[player1_controls[key]]) {
+          player1.body.ApplyForce(direction.scale(force), player1.body.GetPosition());
         }
-        if (pressed_keys.right) {
-          tangent = V(direction.y, -direction.x);
-          player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
+        if (pressed_keys[player2_controls[key]]) {
+          player2.body.ApplyForce(direction.scale(force), player2.body.GetPosition());
         }
-        if (pressed_keys.a) {
-          tangent = V(direction.y, -direction.x);
-          player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
-        }
-        if (pressed_keys.e || pressed_keys.d) {
-          tangent = V(-direction.y, direction.x);
-          player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
-        }
+      }
+      direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize();
+      if (pressed_keys[player1_controls.clockwise]) {
+        tangent = V(-direction.y, direction.x);
+        player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
+      }
+      if (pressed_keys[player1_controls.counter_clockwise]) {
+        tangent = V(direction.y, -direction.x);
+        player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
+      }
+      if (pressed_keys[player2_controls.clockwise]) {
+        tangent = V(-direction.y, direction.x);
+        player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
+      }
+      if (pressed_keys[player2_controls.counter_clockwise]) {
+        tangent = V(direction.y, -direction.x);
+        player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
       }
       world.Step(time_step, constraint_iterations);
       player1_position = player1.body.GetPosition();
       player2_position = player2.body.GetPosition();
       center = player1_position.plus(player2_position.minus(player1_position).scale(0.5));
       camera.position = center.three();
-      for (_j = 0, _len2 = sync_list.length; _j < _len2; _j++) {
-        item = sync_list[_j];
+      for (_i = 0, _len = sync_list.length; _i < _len; _i++) {
+        item = sync_list[_i];
         item.mesh.position = item.body.GetPosition().three();
         item.mesh.rotation.z = item.body.GetAngle();
       }
