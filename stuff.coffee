@@ -117,7 +117,7 @@ $ ->
 
 
     update = ->
-        force = 10
+        force = 25
 
         ###
         cardinals =
@@ -138,6 +138,12 @@ $ ->
         if pressed_keys.right
             tangent = V direction.y, -direction.x
             player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
+        if pressed_keys.a
+            tangent = V direction.y, -direction.x
+            player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
+        if pressed_keys.e or pressed_keys.d
+            tangent = V -direction.y, direction.x
+            player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
 
         world.Step time_step, constraint_iterations
 

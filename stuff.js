@@ -146,7 +146,7 @@
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
       var center, direction, force, item, player1_position, player2_position, tangent, _i, _len;
-      force = 10;
+      force = 25;
       /*
               cardinals =
                   left:V(-1,0)
@@ -166,6 +166,14 @@
       if (pressed_keys.right) {
         tangent = V(direction.y, -direction.x);
         player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
+      }
+      if (pressed_keys.a) {
+        tangent = V(direction.y, -direction.x);
+        player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
+      }
+      if (pressed_keys.e || pressed_keys.d) {
+        tangent = V(-direction.y, direction.x);
+        player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
       }
       world.Step(time_step, constraint_iterations);
       player1_position = player1.body.GetPosition();
