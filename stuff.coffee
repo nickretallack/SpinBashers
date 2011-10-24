@@ -3,6 +3,7 @@ $ ->
     origin = V 0,0
     window_size = -> V innerWidth, innerHeight
 
+    use_cardinals = true
     time_step = 1.0/60.0
     constraint_iterations = 10
     gravity = V 0.0, -10.0
@@ -119,31 +120,41 @@ $ ->
     update = ->
         force = 25
 
-        ###
-        cardinals =
-            left:V(-1,0)
-            right:V(1,0)
-            up:V(0,1)
-            down:V(0,-1)
+        if use_cardinals
+            cardinals =
+                left:V(-1,0)
+                right:V(1,0)
+                up:V(0,1)
+                down:V(0,-1)
+            player2_controls =
+                left:['a']
+                right:['d','e']
+                up:['w',',']
+                down:['s','o']
 
-        for key, direction of cardinals
-            if pressed_keys[key]
-                player1.body.ApplyForce direction.scale(force), player1.body.GetPosition()
-        ###
+            for key, direction of cardinals
+                if pressed_keys[key]
+                    player1.body.ApplyForce direction.scale(force), player1.body.GetPosition()
+                for player2_key in player2_controls[key]
+                    if pressed_keys[player2_key]
+                        player2.body.ApplyForce direction.scale(force), player2.body.GetPosition()
+                        break
+                        
 
-        direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize()
-        if pressed_keys.left
-            tangent = V -direction.y, direction.x
-            player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
-        if pressed_keys.right
-            tangent = V direction.y, -direction.x
-            player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
-        if pressed_keys.a
-            tangent = V direction.y, -direction.x
-            player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
-        if pressed_keys.e or pressed_keys.d
-            tangent = V -direction.y, direction.x
-            player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
+        else
+            direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize()
+            if pressed_keys.left
+                tangent = V -direction.y, direction.x
+                player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
+            if pressed_keys.right
+                tangent = V direction.y, -direction.x
+                player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
+            if pressed_keys.a
+                tangent = V direction.y, -direction.x
+                player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
+            if pressed_keys.e or pressed_keys.d
+                tangent = V -direction.y, direction.x
+                player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
 
         world.Step time_step, constraint_iterations
 
