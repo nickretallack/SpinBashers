@@ -145,19 +145,27 @@
     };
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
-      var cardinals, center, direction, force, item, key, player1_position, player2_position, _i, _len;
+      var center, direction, force, item, player1_position, player2_position, tangent, _i, _len;
       force = 10;
-      cardinals = {
-        left: V(-1, 0),
-        right: V(1, 0),
-        up: V(0, 1),
-        down: V(0, -1)
-      };
-      for (key in cardinals) {
-        direction = cardinals[key];
-        if (pressed_keys[key]) {
-          player1.body.ApplyForce(direction.scale(force), player1.body.GetPosition());
-        }
+      /*
+              cardinals =
+                  left:V(-1,0)
+                  right:V(1,0)
+                  up:V(0,1)
+                  down:V(0,-1)
+      
+              for key, direction of cardinals
+                  if pressed_keys[key]
+                      player1.body.ApplyForce direction.scale(force), player1.body.GetPosition()
+              */
+      direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize();
+      if (pressed_keys.left) {
+        tangent = V(-direction.y, direction.x);
+        player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
+      }
+      if (pressed_keys.right) {
+        tangent = V(direction.y, -direction.x);
+        player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
       }
       world.Step(time_step, constraint_iterations);
       player1_position = player1.body.GetPosition();
