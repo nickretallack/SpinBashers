@@ -164,16 +164,25 @@ $ ->
                 player2.body.ApplyForce direction.scale(force), player2.body.GetPosition()
                         
         direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize()
-        if pressed_keys[player1_controls.clockwise]
+        
+        player1_clockwise = pressed_keys[player1_controls.clockwise]
+        player2_clockwise = pressed_keys[player2_controls.clockwise]
+        player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise]
+        player2_counter_clockwise = pressed_keys[player2_controls.counter_clockwise]
+
+        if player1_clockwise and not (player1_counter_clockwise or player2_clockwise)
             tangent = V -direction.y, direction.x
             player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
-        if pressed_keys[player1_controls.counter_clockwise]
+
+        if player1_counter_clockwise and not (player1_clockwise or player2_counter_clockwise)
             tangent = V direction.y, -direction.x
             player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
-        if pressed_keys[player2_controls.clockwise]
+
+        if player2_clockwise and not (player2_counter_clockwise or player1_clockwise)
             tangent = V -direction.y, direction.x
             player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
-        if pressed_keys[player2_controls.counter_clockwise]
+
+        if player2_counter_clockwise and not (player2_clockwise or player1_counter_clockwise)
             tangent = V direction.y, -direction.x
             player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
 

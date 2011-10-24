@@ -188,7 +188,7 @@
     };
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
-      var center, direction, item, key, player1_position, player2_position, tangent, _i, _len;
+      var center, direction, item, key, player1_clockwise, player1_counter_clockwise, player1_position, player2_clockwise, player2_counter_clockwise, player2_position, tangent, _i, _len;
       for (key in cardinals) {
         direction = cardinals[key];
         if (pressed_keys[player1_controls[key]]) {
@@ -199,19 +199,23 @@
         }
       }
       direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize();
-      if (pressed_keys[player1_controls.clockwise]) {
+      player1_clockwise = pressed_keys[player1_controls.clockwise];
+      player2_clockwise = pressed_keys[player2_controls.clockwise];
+      player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise];
+      player2_counter_clockwise = pressed_keys[player2_controls.counter_clockwise];
+      if (player1_clockwise && !(player1_counter_clockwise || player2_clockwise)) {
         tangent = V(-direction.y, direction.x);
         player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
       }
-      if (pressed_keys[player1_controls.counter_clockwise]) {
+      if (player1_counter_clockwise && !(player1_clockwise || player2_counter_clockwise)) {
         tangent = V(direction.y, -direction.x);
         player2.body.ApplyForce(tangent.scale(force), player2.body.GetPosition());
       }
-      if (pressed_keys[player2_controls.clockwise]) {
+      if (player2_clockwise && !(player2_counter_clockwise || player1_clockwise)) {
         tangent = V(-direction.y, direction.x);
         player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
       }
-      if (pressed_keys[player2_controls.counter_clockwise]) {
+      if (player2_counter_clockwise && !(player2_clockwise || player1_counter_clockwise)) {
         tangent = V(direction.y, -direction.x);
         player1.body.ApplyForce(tangent.scale(force), player1.body.GetPosition());
       }
