@@ -1,12 +1,13 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, default_color, default_friction, default_size, do_sleep, force, force_angle, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, default_color, default_friction, default_size, do_sleep, force, force_angle, gravity, hit_this_frame, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, player_type, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
       return V(innerWidth, innerHeight);
     };
+    _ref = [0, 1], player_type = _ref[0], crate_type = _ref[1];
     use_joint = true;
     use_dvorak = true;
     time_step = 1.0 / 60.0;
@@ -81,8 +82,8 @@
     };
     sync_list = [];
     make_square = function(_arg) {
-      var body, body_definition, color, dynamic, friction, geometry, material, mesh, position, result, shape, size;
-      size = _arg.size, position = _arg.position, friction = _arg.friction, dynamic = _arg.dynamic, color = _arg.color;
+      var body, body_definition, color, data, dynamic, friction, geometry, material, mesh, position, result, shape, size;
+      size = _arg.size, position = _arg.position, friction = _arg.friction, dynamic = _arg.dynamic, color = _arg.color, data = _arg.data;
             if (size != null) {
         size;
       } else {
@@ -128,6 +129,9 @@
       }
       body_definition = new b2BodyDef();
       body_definition.position = position;
+      if (typeof name !== "undefined" && name !== null) {
+        body_definition.userData = data;
+      }
       body = world.CreateBody(body_definition);
       body.CreateShape(shape);
       if (dynamic) {
@@ -145,37 +149,6 @@
       sync_list.push(result);
       return result;
     };
-    camera_radius = 10;
-    camera = new THREE.OrthographicCamera(-camera_radius, camera_radius, camera_radius, -camera_radius, -camera_radius, camera_radius);
-    camera.position.z = camera_radius * 2;
-    scene = new THREE.Scene();
-    renderer = new THREE.CanvasRenderer();
-    renderer.setSize(500, 500);
-    document.body.appendChild(renderer.domElement);
-    world_box = new b2AABB();
-    world_box.lowerBound = world_size.scale(-1);
-    world_box.upperBound = world_size;
-    do_sleep = true;
-    world = new b2World(world_box, gravity, do_sleep);
-    player1 = make_square({
-      position: V(-2, 2),
-      color: 0x0000ff
-    });
-    player2 = make_square({
-      position: V(2, -2)
-    });
-    if (use_joint) {
-      joint_definition = new b2DistanceJointDef();
-      joint_definition.Initialize(player1.body, player2.body, player1.body.GetPosition(), player2.body.GetPosition());
-      joint = world.CreateJoint(joint_definition);
-    }
-    variance = 30;
-    for (index = 0; index <= 50; index++) {
-      make_square({
-        position: V((Math.random() - 0.5) * variance, (Math.random() - 0.5) * variance),
-        color: 0x00ff00
-      });
-    }
     make_line = function(point1, point2) {
       var geometry, material, mesh;
       geometry = new THREE.Geometry();
@@ -190,6 +163,72 @@
       scene.add(mesh);
       return mesh;
     };
+    camera_radius = 10;
+    camera = new THREE.OrthographicCamera(-camera_radius, camera_radius, camera_radius, -camera_radius, -camera_radius, camera_radius);
+    camera.position.z = camera_radius * 2;
+    scene = new THREE.Scene();
+    renderer = new THREE.CanvasRenderer();
+    renderer.setSize(500, 500);
+    document.body.appendChild(renderer.domElement);
+    world_box = new b2AABB();
+    world_box.lowerBound = world_size.scale(-1);
+    world_box.upperBound = world_size;
+    do_sleep = true;
+    world = new b2World(world_box, gravity, do_sleep);
+    contact_listener = new b2ContactListener();
+    hit_this_frame = false;
+    contact_listener.Result = function(contact) {
+      var crate_shape, get_type, player_shape, type1, type2;
+      get_type = function(shape) {
+        return shape.GetBody().GetUserData().type;
+      };
+      type1 = get_type(contact.shape1);
+      type2 = get_type(contact.shape2);
+      if (contact.normalImpulse > 2) {
+        if ((type1 === player_type && type2 === crate_type) || (type1 === crate_type && type2 === player_type)) {
+          if (type1 === player_type && type2 === crate_type) {
+            player_shape = contact.shape1;
+            crate_shape = contact.shape2;
+          } else if (type2 === player_type && type1 === crate_type) {
+            player_shape = contact.shape2;
+            crate_shape = contact.shape1;
+          }
+          console.log(contact.normalImpulse, hit_this_frame);
+          return hit_this_frame = true;
+        }
+      }
+    };
+    world.SetContactListener(contact_listener);
+    player1 = make_square({
+      position: V(-2, 2),
+      color: 0x0000ff,
+      data: {
+        type: player_type,
+        which: 1
+      }
+    });
+    player2 = make_square({
+      position: V(2, -2),
+      data: {
+        type: player_type,
+        which: 2
+      }
+    });
+    if (use_joint) {
+      joint_definition = new b2DistanceJointDef();
+      joint_definition.Initialize(player1.body, player2.body, player1.body.GetPosition(), player2.body.GetPosition());
+      joint = world.CreateJoint(joint_definition);
+    }
+    variance = 30;
+    for (index = 0; index <= 50; index++) {
+      make_square({
+        position: V((Math.random() - 0.5) * variance, (Math.random() - 0.5) * variance),
+        color: 0x00ff00,
+        data: {
+          type: crate_type
+        }
+      });
+    }
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
       var center, direction, force_direction, item, key, player1_clockwise, player1_counter_clockwise, player1_direction, player1_position, player2_clockwise, player2_counter_clockwise, player2_position, _i, _len;
@@ -226,6 +265,7 @@
         force_direction = player1_direction.rotate(-force_angle);
         player1.body.ApplyForce(force_direction.scale(force), player1_position);
       }
+      hit_this_frame = false;
       world.Step(time_step, constraint_iterations);
       camera.position = center.three();
       for (_i = 0, _len = sync_list.length; _i < _len; _i++) {

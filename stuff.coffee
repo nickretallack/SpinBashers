@@ -3,6 +3,8 @@ $ ->
     origin = V 0,0
     window_size = -> V innerWidth, innerHeight
 
+    [player_type, crate_type] = [0..1]
+
     use_joint = true
     use_dvorak = true
     time_step = 1.0/60.0
@@ -71,7 +73,7 @@ $ ->
 
     sync_list = []
 
-    make_square = ({size, position, friction, dynamic, color}) ->
+    make_square = ({size, position, friction, dynamic, color, data}) ->
         size ?= default_size
         position ?= origin
         friction ?= default_friction
@@ -91,6 +93,8 @@ $ ->
             shape.friction = friction
         body_definition = new b2BodyDef()
         body_definition.position = position
+        if name?
+            body_definition.userData = data
 
         body = world.CreateBody body_definition
         body.CreateShape shape
@@ -107,6 +111,18 @@ $ ->
             body_definition:body_definition
         sync_list.push result
         result
+
+    make_line = (point1, point2) ->
+        geometry = new THREE.Geometry()
+        geometry.vertices.push new THREE.Vertex point1.three()
+        geometry.vertices.push new THREE.Vertex point2.three()
+        material = new THREE.LineBasicMaterial
+            color:0xbbbbbb
+            lineWidth:5
+        mesh = new THREE.Line geometry, material
+        mesh.dynamic = true
+        scene.add mesh
+        mesh
 
     # graphics
     camera_radius = 10
@@ -125,12 +141,41 @@ $ ->
     world_box.upperBound = world_size
     do_sleep = true
     world = new b2World world_box, gravity, do_sleep
+
+    # contact listener
+    contact_listener = new b2ContactListener()
+    hit_this_frame = false
+    contact_listener.Result = (contact) ->
+        get_type = (shape) -> shape.GetBody().GetUserData().type
+        #shapes = [contact.shape1, contact.shape2]
+        #shapes.sort (a,b) -> get_type(a) - get_type(b)
+        type1 = get_type contact.shape1
+        type2 = get_type contact.shape2
+
+        if contact.normalImpulse > 2
+            if (type1 is player_type and type2 is crate_type) or (type1 is crate_type and type2 is player_type)
+                if type1 is player_type and type2 is crate_type
+                    player_shape = contact.shape1
+                    crate_shape = contact.shape2
+                else if type2 is player_type and type1 is crate_type
+                    player_shape = contact.shape2
+                    crate_shape = contact.shape1
+                console.log contact.normalImpulse, hit_this_frame
+                hit_this_frame = true
+
+    world.SetContactListener contact_listener
     
     player1 = make_square
         position:V(-2, 2)
         color:0x0000ff
+        data:
+            type:player_type
+            which:1
     player2 = make_square
         position:V(2, -2)
+        data:
+            type:player_type
+            which:2
     
     if use_joint
         joint_definition = new b2DistanceJointDef()
@@ -143,21 +188,10 @@ $ ->
         make_square
             position:V((Math.random()-0.5)*variance, (Math.random()-0.5)*variance)
             color:0x00ff00
-
-    make_line = (point1, point2) ->
-        geometry = new THREE.Geometry()
-        geometry.vertices.push new THREE.Vertex point1.three()
-        geometry.vertices.push new THREE.Vertex point2.three()
-        material = new THREE.LineBasicMaterial
-            color:0xbbbbbb
-            lineWidth:5
-        mesh = new THREE.Line geometry, material
-        mesh.dynamic = true
-        scene.add mesh
-        mesh
+            data:
+                type:crate_type
 
     line = make_line player1.body.GetPosition(), player2.body.GetPosition()
-
 
     update = ->
         player1_position = player1.body.GetPosition()
@@ -192,6 +226,7 @@ $ ->
             force_direction = player1_direction.rotate -force_angle
             player1.body.ApplyForce force_direction.scale(force), player1_position
 
+        hit_this_frame = false
         world.Step time_step, constraint_iterations
 
         camera.position = center.three()
