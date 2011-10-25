@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, default_color, default_friction, default_size, do_sleep, force, force_angle, gravity, hit_this_frame, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, player_type, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, damaging_impulse, default_color, default_friction, default_size, do_sleep, force, force_angle, get_data, get_type, gravity, hit_this_frame, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, player_type, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -19,11 +19,13 @@
     max_angular_velocity = 10;
     default_size = V(1, 1);
     default_color = 0xff0000;
+    damaging_impulse = 2;
+    force = 25;
+    force_angle = 45;
     world_size = V(2000, 2000);
     world_padding = 50;
     gravity = origin;
-    force = 25;
-    force_angle = 45;
+    hit_this_frame = false;
     cardinals = {
       left: V(-1, 0),
       right: V(1, 0),
@@ -175,25 +177,26 @@
     world_box.upperBound = world_size;
     do_sleep = true;
     world = new b2World(world_box, gravity, do_sleep);
+    get_type = function(shape) {
+      return shape.GetBody().GetUserData().type;
+    };
+    get_data = function(shape) {
+      return shape.GetBody().GetUserData();
+    };
     contact_listener = new b2ContactListener();
-    hit_this_frame = false;
     contact_listener.Result = function(contact) {
-      var crate_shape, get_type, player_shape, type1, type2;
-      get_type = function(shape) {
-        return shape.GetBody().GetUserData().type;
-      };
-      type1 = get_type(contact.shape1);
-      type2 = get_type(contact.shape2);
-      if (contact.normalImpulse > 2) {
-        if ((type1 === player_type && type2 === crate_type) || (type1 === crate_type && type2 === player_type)) {
-          if (type1 === player_type && type2 === crate_type) {
-            player_shape = contact.shape1;
-            crate_shape = contact.shape2;
-          } else if (type2 === player_type && type1 === crate_type) {
-            player_shape = contact.shape2;
-            crate_shape = contact.shape1;
-          }
-          console.log(contact.normalImpulse, hit_this_frame);
+      var crate_shape, player_shape, shapes, type1, type2;
+      if (contact.normalImpulse > damaging_impulse) {
+        shapes = [contact.shape1, contact.shape2];
+        shapes.sort(function(a, b) {
+          return get_type(a) - get_type(b);
+        });
+        type1 = get_type(shapes[0]);
+        type2 = get_type(shapes[1]);
+        if (type1 === player_type && type2 === crate_type) {
+          player_shape = contact.shape1;
+          crate_shape = contact.shape2;
+          console.log("Player " + (get_data(player_shape).which) + " was hit for " + contact.normalImpulse + " at " + (Date()));
           return hit_this_frame = true;
         }
       }

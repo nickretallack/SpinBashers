@@ -16,13 +16,15 @@ $ ->
     max_angular_velocity = 10
     default_size = V 1,1
     default_color = 0xff0000
+    damaging_impulse = 2
+    force = 25
+    force_angle = 45
 
     world_size = V 2000, 2000
     world_padding = 50
     gravity = origin
 
-    force = 25
-    force_angle = 45
+    hit_this_frame = false
 
     cardinals =
         left:V(-1,0)
@@ -142,25 +144,22 @@ $ ->
     do_sleep = true
     world = new b2World world_box, gravity, do_sleep
 
+    get_type = (shape) -> shape.GetBody().GetUserData().type
+    get_data = (shape) -> shape.GetBody().GetUserData()
+
     # contact listener
     contact_listener = new b2ContactListener()
-    hit_this_frame = false
     contact_listener.Result = (contact) ->
-        get_type = (shape) -> shape.GetBody().GetUserData().type
-        #shapes = [contact.shape1, contact.shape2]
-        #shapes.sort (a,b) -> get_type(a) - get_type(b)
-        type1 = get_type contact.shape1
-        type2 = get_type contact.shape2
+        if contact.normalImpulse > damaging_impulse
+            shapes = [contact.shape1, contact.shape2]
+            shapes.sort (a,b) -> get_type(a) - get_type(b)
+            type1 = get_type shapes[0]
+            type2 = get_type shapes[1]
 
-        if contact.normalImpulse > 2
-            if (type1 is player_type and type2 is crate_type) or (type1 is crate_type and type2 is player_type)
-                if type1 is player_type and type2 is crate_type
-                    player_shape = contact.shape1
-                    crate_shape = contact.shape2
-                else if type2 is player_type and type1 is crate_type
-                    player_shape = contact.shape2
-                    crate_shape = contact.shape1
-                console.log contact.normalImpulse, hit_this_frame
+            if type1 is player_type and type2 is crate_type
+                player_shape = contact.shape1
+                crate_shape = contact.shape2
+                console.log "Player #{get_data(player_shape).which} was hit for #{contact.normalImpulse} at #{Date()}"
                 hit_this_frame = true
 
     world.SetContactListener contact_listener
