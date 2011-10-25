@@ -1,5 +1,5 @@
 (function() {
-  var Vector, copy_methods, method, name, _ref;
+  var Vector, copy_methods, method, name, radians_factor, _ref;
   copy_methods = function(here, there) {
     var method, name, temp, _results;
     temp = {};
@@ -27,6 +27,7 @@
     }
     return _results;
   };
+  radians_factor = Math.PI / 180.0;
   _ref = b2Vec2.prototype;
   for (name in _ref) {
     method = _ref[name];
@@ -54,6 +55,12 @@
       var child = new ctor, result = func.apply(child, args);
       return typeof result === "object" ? result : child;
     })(THREE.Vector3, this.components(), function() {});
+  };
+  Vector.prototype.rotate = function(angle) {
+    var result;
+    result = this.clone();
+    result.MulM(new b2Mat22(angle * radians_factor));
+    return result;
   };
   window.V = function() {
     return (function(func, args, ctor) {

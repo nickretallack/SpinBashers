@@ -3,6 +3,7 @@ $ ->
     origin = V 0,0
     window_size = -> V innerWidth, innerHeight
 
+    use_joint = true
     use_dvorak = true
     time_step = 1.0/60.0
     constraint_iterations = 10
@@ -61,7 +62,7 @@ $ ->
         size = 1
         elevation = 3
         for index in [0..10]
-            make_square 
+            make_square
                 position:V(location, index*2)
 
     make_level = ->
@@ -130,10 +131,11 @@ $ ->
     player2 = make_square
         position:V(2, -2)
     
-    joint_definition = new b2DistanceJointDef()
-    joint_definition.Initialize player1.body, player2.body,
-        player1.body.GetPosition(), player2.body.GetPosition()
-    joint = world.CreateJoint joint_definition
+    if use_joint
+        joint_definition = new b2DistanceJointDef()
+        joint_definition.Initialize player1.body, player2.body,
+            player1.body.GetPosition(), player2.body.GetPosition()
+        joint = world.CreateJoint joint_definition
 
     variance = 30
     for index in [0..50]
@@ -163,28 +165,29 @@ $ ->
             if pressed_keys[player2_controls[key]]
                 player2.body.ApplyForce direction.scale(force), player2.body.GetPosition()
                         
-        direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize()
+        player1_direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize()
         
         player1_clockwise = pressed_keys[player1_controls.clockwise]
         player2_clockwise = pressed_keys[player2_controls.clockwise]
         player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise]
         player2_counter_clockwise = pressed_keys[player2_controls.counter_clockwise]
 
+        force_angle = 45
         if player1_clockwise and not (player1_counter_clockwise or player2_clockwise)
-            tangent = V -direction.y, direction.x
-            player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
+            force_direction = player1_direction.scale(-1).rotate force_angle
+            player2.body.ApplyForce force_direction.scale(force), player2.body.GetPosition()
 
         if player1_counter_clockwise and not (player1_clockwise or player2_counter_clockwise)
-            tangent = V direction.y, -direction.x
-            player2.body.ApplyForce tangent.scale(force), player2.body.GetPosition()
+            force_direction = player1_direction.scale(-1).rotate -force_angle
+            player2.body.ApplyForce force_direction.scale(force), player2.body.GetPosition()
 
         if player2_clockwise and not (player2_counter_clockwise or player1_clockwise)
-            tangent = V -direction.y, direction.x
-            player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
+            force_direction = player1_direction.rotate force_angle
+            player1.body.ApplyForce force_direction.scale(force), player1.body.GetPosition()
 
         if player2_counter_clockwise and not (player2_clockwise or player1_counter_clockwise)
-            tangent = V direction.y, -direction.x
-            player1.body.ApplyForce tangent.scale(force), player1.body.GetPosition()
+            force_direction = player1_direction.rotate -force_angle
+            player1.body.ApplyForce force_direction.scale(force), player1.body.GetPosition()
 
         world.Step time_step, constraint_iterations
 

@@ -12,6 +12,8 @@ copy_methods = (here, there) ->
 
 #copy_methods b2Vec2.prototype, THREE.Vector2.prototype
 
+radians_factor = Math.PI / 180.0
+
 for name, method of b2Vec2.prototype
     continue if name == 'constructor'
     THREE.Vector2.prototype[name] = method
@@ -22,5 +24,9 @@ Vector::scale = (scalar) -> @clone().multiplyScalar scalar
 Vector::plus = (other) -> @clone().addSelf other
 Vector::minus = (other) -> @plus other.scale -1
 Vector::three = -> new THREE.Vector3 @components()...
+Vector::rotate = (angle) ->
+    result = @clone()
+    result.MulM new b2Mat22 angle * radians_factor
+    result
 
 window.V = -> new Vector arguments...
