@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, damaging_impulse, default_color, default_friction, default_size, do_sleep, force, force_angle, get_data, get_type, gravity, hit_this_frame, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, player_type, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, damaging_impulse, default_color, default_friction, default_size, do_sleep, end_game, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, player_type, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -26,6 +26,7 @@
     world_padding = 50;
     gravity = origin;
     hit_this_frame = false;
+    game_over = false;
     cardinals = {
       left: V(-1, 0),
       right: V(1, 0),
@@ -67,6 +68,10 @@
         counter_clockwise: 'q'
       };
     }
+    end_game = function(winner) {
+      console.log("Player " + winner + " wins!");
+      return game_over = true;
+    };
     make_heap = function(location) {
       var elevation, index, size, _results;
       size = 1;
@@ -185,7 +190,7 @@
     };
     contact_listener = new b2ContactListener();
     contact_listener.Result = function(contact) {
-      var crate_shape, player_shape, shapes, type1, type2;
+      var player, player_data, shapes, type1, type2;
       if (contact.normalImpulse > damaging_impulse) {
         shapes = [contact.shape1, contact.shape2];
         shapes.sort(function(a, b) {
@@ -194,9 +199,13 @@
         type1 = get_type(shapes[0]);
         type2 = get_type(shapes[1]);
         if (type1 === player_type && type2 === crate_type) {
-          player_shape = contact.shape1;
-          crate_shape = contact.shape2;
-          console.log("Player " + (get_data(player_shape).which) + " was hit for " + contact.normalImpulse + " at " + (Date()));
+          player_data = get_data(contact.shape1);
+          player = player_data.which === 1 ? player1 : player2;
+          player.hit_points -= contact.normalImpulse;
+          console.log("Player " + player_data.which + " was hit for " + contact.normalImpulse + ". " + player.hit_points + " HP remaining. " + (Date()));
+          if (player.hit_points < 0) {
+            end_game(player_data.which);
+          }
           return hit_this_frame = true;
         }
       }
@@ -217,6 +226,7 @@
         which: 2
       }
     });
+    player1.hit_points = player2.hit_points = 50;
     if (use_joint) {
       joint_definition = new b2DistanceJointDef();
       joint_definition.Initialize(player1.body, player2.body, player1.body.GetPosition(), player2.body.GetPosition());
@@ -235,6 +245,9 @@
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
       var center, direction, force_direction, item, key, player1_clockwise, player1_counter_clockwise, player1_direction, player1_position, player2_clockwise, player2_counter_clockwise, player2_position, _i, _len;
+      if (game_over) {
+        return;
+      }
       player1_position = player1.body.GetPosition();
       player2_position = player2.body.GetPosition();
       player1_direction = player2_position.minus(player1_position).normalize();

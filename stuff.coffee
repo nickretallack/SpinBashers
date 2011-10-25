@@ -25,6 +25,7 @@ $ ->
     gravity = origin
 
     hit_this_frame = false
+    game_over = false
 
     cardinals =
         left:V(-1,0)
@@ -62,6 +63,10 @@ $ ->
             up:'w'
             clockwise:'e'
             counter_clockwise:'q'
+
+    end_game = (winner) ->
+        console.log "Player #{winner} wins!"
+        game_over = true
         
     make_heap = (location) ->
         size = 1
@@ -157,9 +162,12 @@ $ ->
             type2 = get_type shapes[1]
 
             if type1 is player_type and type2 is crate_type
-                player_shape = contact.shape1
-                crate_shape = contact.shape2
-                console.log "Player #{get_data(player_shape).which} was hit for #{contact.normalImpulse} at #{Date()}"
+                player_data = get_data contact.shape1
+                player = if player_data.which is 1 then player1 else player2
+                player.hit_points -= contact.normalImpulse
+                console.log "Player #{player_data.which} was hit for #{contact.normalImpulse}. #{player.hit_points} HP remaining. #{Date()}"
+                if player.hit_points < 0
+                    end_game player_data.which
                 hit_this_frame = true
 
     world.SetContactListener contact_listener
@@ -175,6 +183,8 @@ $ ->
         data:
             type:player_type
             which:2
+
+    player1.hit_points = player2.hit_points = 50
     
     if use_joint
         joint_definition = new b2DistanceJointDef()
@@ -193,6 +203,7 @@ $ ->
     line = make_line player1.body.GetPosition(), player2.body.GetPosition()
 
     update = ->
+        return if game_over
         player1_position = player1.body.GetPosition()
         player2_position = player2.body.GetPosition()
         player1_direction = player2_position.minus(player1_position).normalize()
