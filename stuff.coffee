@@ -20,6 +20,7 @@ $ ->
     gravity = origin
 
     force = 25
+    force_angle = 45
 
     cardinals =
         left:V(-1,0)
@@ -159,49 +160,48 @@ $ ->
 
 
     update = ->
-        for key, direction of cardinals
-            if pressed_keys[player1_controls[key]]
-                player1.body.ApplyForce direction.scale(force), player1.body.GetPosition()
-            if pressed_keys[player2_controls[key]]
-                player2.body.ApplyForce direction.scale(force), player2.body.GetPosition()
-                        
-        player1_direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize()
-        
+        player1_position = player1.body.GetPosition()
+        player2_position = player2.body.GetPosition()
+        player1_direction = player2_position.minus(player1_position).normalize()
+        center = player1_position.plus player2_position.minus(player1_position).scale(0.5)
+
         player1_clockwise = pressed_keys[player1_controls.clockwise]
         player2_clockwise = pressed_keys[player2_controls.clockwise]
         player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise]
         player2_counter_clockwise = pressed_keys[player2_controls.counter_clockwise]
 
-        force_angle = 45
+        for key, direction of cardinals
+            if pressed_keys[player1_controls[key]]
+                player1.body.ApplyForce direction.scale(force), player1_position
+            if pressed_keys[player2_controls[key]]
+                player2.body.ApplyForce direction.scale(force), player2_position
+                        
         if player1_clockwise and not (player1_counter_clockwise or player2_clockwise)
             force_direction = player1_direction.scale(-1).rotate force_angle
-            player2.body.ApplyForce force_direction.scale(force), player2.body.GetPosition()
+            player2.body.ApplyForce force_direction.scale(force), player2_position
 
         if player1_counter_clockwise and not (player1_clockwise or player2_counter_clockwise)
             force_direction = player1_direction.scale(-1).rotate -force_angle
-            player2.body.ApplyForce force_direction.scale(force), player2.body.GetPosition()
+            player2.body.ApplyForce force_direction.scale(force), player2_position
 
         if player2_clockwise and not (player2_counter_clockwise or player1_clockwise)
             force_direction = player1_direction.rotate force_angle
-            player1.body.ApplyForce force_direction.scale(force), player1.body.GetPosition()
+            player1.body.ApplyForce force_direction.scale(force), player1_position
 
         if player2_counter_clockwise and not (player2_clockwise or player1_counter_clockwise)
             force_direction = player1_direction.rotate -force_angle
-            player1.body.ApplyForce force_direction.scale(force), player1.body.GetPosition()
+            player1.body.ApplyForce force_direction.scale(force), player1_position
 
         world.Step time_step, constraint_iterations
 
-        player1_position = player1.body.GetPosition()
-        player2_position = player2.body.GetPosition()
-        center = player1_position.plus player2_position.minus(player1_position).scale(0.5)
         camera.position = center.three()
 
         for item in sync_list
             item.mesh.position = item.body.GetPosition().three()
             item.mesh.rotation.z = item.body.GetAngle()
 
-        line.geometry.vertices[0].position = player1.body.GetPosition().three()
-        line.geometry.vertices[1].position = player2.body.GetPosition().three()
+        line.geometry.vertices[0].position = player1_position.three()
+        line.geometry.vertices[1].position = player2_position.three()
         line.geometry.__dirtyVertices = true
 
         renderer.render scene, camera

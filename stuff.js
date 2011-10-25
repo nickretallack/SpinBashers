@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, default_color, default_friction, default_size, do_sleep, force, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, default_color, default_friction, default_size, do_sleep, force, force_angle, gravity, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -22,6 +22,7 @@
     world_padding = 50;
     gravity = origin;
     force = 25;
+    force_angle = 45;
     cardinals = {
       left: V(-1, 0),
       right: V(1, 0),
@@ -191,50 +192,49 @@
     };
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
-      var center, direction, force_angle, force_direction, item, key, player1_clockwise, player1_counter_clockwise, player1_direction, player1_position, player2_clockwise, player2_counter_clockwise, player2_position, _i, _len;
-      for (key in cardinals) {
-        direction = cardinals[key];
-        if (pressed_keys[player1_controls[key]]) {
-          player1.body.ApplyForce(direction.scale(force), player1.body.GetPosition());
-        }
-        if (pressed_keys[player2_controls[key]]) {
-          player2.body.ApplyForce(direction.scale(force), player2.body.GetPosition());
-        }
-      }
-      player1_direction = player2.body.GetPosition().minus(player1.body.GetPosition()).normalize();
+      var center, direction, force_direction, item, key, player1_clockwise, player1_counter_clockwise, player1_direction, player1_position, player2_clockwise, player2_counter_clockwise, player2_position, _i, _len;
+      player1_position = player1.body.GetPosition();
+      player2_position = player2.body.GetPosition();
+      player1_direction = player2_position.minus(player1_position).normalize();
+      center = player1_position.plus(player2_position.minus(player1_position).scale(0.5));
       player1_clockwise = pressed_keys[player1_controls.clockwise];
       player2_clockwise = pressed_keys[player2_controls.clockwise];
       player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise];
       player2_counter_clockwise = pressed_keys[player2_controls.counter_clockwise];
-      force_angle = 45;
+      for (key in cardinals) {
+        direction = cardinals[key];
+        if (pressed_keys[player1_controls[key]]) {
+          player1.body.ApplyForce(direction.scale(force), player1_position);
+        }
+        if (pressed_keys[player2_controls[key]]) {
+          player2.body.ApplyForce(direction.scale(force), player2_position);
+        }
+      }
       if (player1_clockwise && !(player1_counter_clockwise || player2_clockwise)) {
         force_direction = player1_direction.scale(-1).rotate(force_angle);
-        player2.body.ApplyForce(force_direction.scale(force), player2.body.GetPosition());
+        player2.body.ApplyForce(force_direction.scale(force), player2_position);
       }
       if (player1_counter_clockwise && !(player1_clockwise || player2_counter_clockwise)) {
         force_direction = player1_direction.scale(-1).rotate(-force_angle);
-        player2.body.ApplyForce(force_direction.scale(force), player2.body.GetPosition());
+        player2.body.ApplyForce(force_direction.scale(force), player2_position);
       }
       if (player2_clockwise && !(player2_counter_clockwise || player1_clockwise)) {
         force_direction = player1_direction.rotate(force_angle);
-        player1.body.ApplyForce(force_direction.scale(force), player1.body.GetPosition());
+        player1.body.ApplyForce(force_direction.scale(force), player1_position);
       }
       if (player2_counter_clockwise && !(player2_clockwise || player1_counter_clockwise)) {
         force_direction = player1_direction.rotate(-force_angle);
-        player1.body.ApplyForce(force_direction.scale(force), player1.body.GetPosition());
+        player1.body.ApplyForce(force_direction.scale(force), player1_position);
       }
       world.Step(time_step, constraint_iterations);
-      player1_position = player1.body.GetPosition();
-      player2_position = player2.body.GetPosition();
-      center = player1_position.plus(player2_position.minus(player1_position).scale(0.5));
       camera.position = center.three();
       for (_i = 0, _len = sync_list.length; _i < _len; _i++) {
         item = sync_list[_i];
         item.mesh.position = item.body.GetPosition().three();
         item.mesh.rotation.z = item.body.GetAngle();
       }
-      line.geometry.vertices[0].position = player1.body.GetPosition().three();
-      line.geometry.vertices[1].position = player2.body.GetPosition().three();
+      line.geometry.vertices[0].position = player1_position.three();
+      line.geometry.vertices[1].position = player2_position.three();
       line.geometry.__dirtyVertices = true;
       return renderer.render(scene, camera);
     };
