@@ -1,5 +1,6 @@
 <!doctype html>
 <html><head><title>Three!</title>
+<link rel="stylesheet" href="style.css"></script>
 <script src="common/minified/jquery.js"></script>
 <script src="common/keycodes.js"></script>
 <script src="common/keydown.js"></script>
@@ -9,4 +10,10 @@
 <script src="vector_compatibility.js"></script>
 <script src="stuff.js"></script>
 </head><body>
+<div id="game"></div>
+<div id="score">
+    <p class="player1">Red Player <span id="player1_hit_points">100</span> HP</p>
+    <p class="player2">Blue Player <span id="player2_hit_points">100</span> HP</p>
+    <p id="winner"></p>
+</div>
 </body></html>

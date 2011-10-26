@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, damaging_impulse, default_color, default_friction, default_size, do_sleep, end_game, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, player1, player1_controls, player2, player2_controls, player_friction, player_type, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, damaging_impulse, default_color, default_friction, default_size, do_sleep, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, hurt_player, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, other_player, player1, player1_controls, player2, player2_controls, player_friction, player_type, players, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -27,6 +27,7 @@
     gravity = origin;
     hit_this_frame = false;
     game_over = false;
+    sync_list = [];
     cardinals = {
       left: V(-1, 0),
       right: V(1, 0),
@@ -68,10 +69,6 @@
         counter_clockwise: 'q'
       };
     }
-    end_game = function(winner) {
-      console.log("Player " + winner + " wins!");
-      return game_over = true;
-    };
     make_heap = function(location) {
       var elevation, index, size, _results;
       size = 1;
@@ -87,7 +84,16 @@
     make_level = function() {
       return make_heap(2);
     };
-    sync_list = [];
+    hurt_player = function(player, damage) {
+      player.hit_points -= damage;
+      console.log("" + player.name + " was hit for " + damage + ". " + player.hit_points + " HP remaining. " + (Date()));
+      $("#player" + player.which + "_hit_points").text(Math.round(player.hit_points));
+      if (player.hit_points < 0) {
+        game_over = true;
+        console.log("" + player.name + " wins!");
+        return $("#winner").text("" + player.name + " wins!").addClass("player" + player.which);
+      }
+    };
     make_square = function(_arg) {
       var body, body_definition, color, data, dynamic, friction, geometry, material, mesh, position, result, shape, size;
       size = _arg.size, position = _arg.position, friction = _arg.friction, dynamic = _arg.dynamic, color = _arg.color, data = _arg.data;
@@ -176,7 +182,7 @@
     scene = new THREE.Scene();
     renderer = new THREE.CanvasRenderer();
     renderer.setSize(500, 500);
-    document.body.appendChild(renderer.domElement);
+    $("#game").append(renderer.domElement);
     world_box = new b2AABB();
     world_box.lowerBound = world_size.scale(-1);
     world_box.upperBound = world_size;
@@ -200,12 +206,8 @@
         type2 = get_type(shapes[1]);
         if (type1 === player_type && type2 === crate_type) {
           player_data = get_data(contact.shape1);
-          player = player_data.which === 1 ? player1 : player2;
-          player.hit_points -= contact.normalImpulse;
-          console.log("Player " + player_data.which + " was hit for " + contact.normalImpulse + ". " + player.hit_points + " HP remaining. " + (Date()));
-          if (player.hit_points < 0) {
-            end_game(player_data.which);
-          }
+          player = player_data.which === 2 ? player1 : player2;
+          hurt_player(player, contact.normalImpulse);
           return hit_this_frame = true;
         }
       }
@@ -226,7 +228,19 @@
         which: 2
       }
     });
-    player1.hit_points = player2.hit_points = 50;
+    player1.hit_points = player2.hit_points = 100;
+    player1.name = "Blue Player";
+    player2.name = "Red Player";
+    player1.which = 1;
+    player2.which = 2;
+    players = [player1, player2];
+    other_player = function(player) {
+      if (player === players[0]) {
+        return players[1];
+      } else {
+        return players[0];
+      }
+    };
     if (use_joint) {
       joint_definition = new b2DistanceJointDef();
       joint_definition.Initialize(player1.body, player2.body, player1.body.GetPosition(), player2.body.GetPosition());

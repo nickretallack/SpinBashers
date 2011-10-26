@@ -26,6 +26,7 @@ $ ->
 
     hit_this_frame = false
     game_over = false
+    sync_list = []
 
     cardinals =
         left:V(-1,0)
@@ -64,10 +65,6 @@ $ ->
             clockwise:'e'
             counter_clockwise:'q'
 
-    end_game = (winner) ->
-        console.log "Player #{winner} wins!"
-        game_over = true
-        
     make_heap = (location) ->
         size = 1
         elevation = 3
@@ -78,7 +75,14 @@ $ ->
     make_level = ->
         make_heap 2
 
-    sync_list = []
+    hurt_player = (player, damage) ->
+        player.hit_points -= damage
+        console.log "#{player.name} was hit for #{damage}. #{player.hit_points} HP remaining. #{Date()}"
+        $("#player#{player.which}_hit_points").text Math.round player.hit_points
+        if player.hit_points < 0
+            game_over = true
+            console.log "#{player.name} wins!"
+            $("#winner").text("#{player.name} wins!").addClass("player#{player.which}")
 
     make_square = ({size, position, friction, dynamic, color, data}) ->
         size ?= default_size
@@ -140,7 +144,7 @@ $ ->
     renderer = new THREE.CanvasRenderer()
     renderer.setSize 500, 500 #window.innerWidth, window.innerHeight
     #renderer.setSize window.innerWidth, window.innerHeight
-    document.body.appendChild renderer.domElement
+    $("#game").append renderer.domElement
 
     # physics
     world_box = new b2AABB()
@@ -163,11 +167,8 @@ $ ->
 
             if type1 is player_type and type2 is crate_type
                 player_data = get_data contact.shape1
-                player = if player_data.which is 1 then player1 else player2
-                player.hit_points -= contact.normalImpulse
-                console.log "Player #{player_data.which} was hit for #{contact.normalImpulse}. #{player.hit_points} HP remaining. #{Date()}"
-                if player.hit_points < 0
-                    end_game player_data.which
+                player = if player_data.which is 2 then player1 else player2
+                hurt_player(player, contact.normalImpulse)
                 hit_this_frame = true
 
     world.SetContactListener contact_listener
@@ -184,7 +185,15 @@ $ ->
             type:player_type
             which:2
 
-    player1.hit_points = player2.hit_points = 50
+    player1.hit_points = player2.hit_points = 100
+    player1.name = "Blue Player"
+    player2.name = "Red Player"
+    player1.which = 1
+    player2.which = 2
+
+    players = [player1, player2]
+    other_player = (player) ->
+        if player is players[0] then players[1] else players[0]
     
     if use_joint
         joint_definition = new b2DistanceJointDef()
