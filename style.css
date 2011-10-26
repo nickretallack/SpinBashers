@@ -1,4 +1,6 @@
 div {display:inline-block; vertical-align:top}
-.player1 {color:#f00}
-.player2 {color:#00f}
-
+.player2 {color:#f00}
+.player1 {color:#00f}
+.controls {margin:1ex}
+td {padding:.3ex 1ex}
+h1 {font-size:1.3em; margin:1ex 0}

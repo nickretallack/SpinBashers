@@ -6,7 +6,6 @@ $ ->
     [player_type, crate_type] = [0..1]
 
     use_joint = true
-    use_dvorak = true
     time_step = 1.0/60.0
     constraint_iterations = 10
     gravity = V 0.0, -10.0
@@ -34,36 +33,49 @@ $ ->
         up:V(0,1)
         down:V(0,-1)
 
-    if use_dvorak
-        player1_controls =
-            left:'left'
-            right:'right'
-            down:'down'
-            up:'up'
-            clockwise:'shift'
-            counter_clockwise:'z'
-        player2_controls =
-            left:'a'
-            right:'e'
-            down:'o'
-            up:','
-            clockwise:'.'
-            counter_clockwise:'\''
+    dvorak_checkbox = $('#use_dvorak')
+    if localStorage.controls == 'dvorak'
+        current_controls = 'dvorak'
+        dvorak_checkbox.attr('checked','checked')
     else
-        player1_controls =
-            left:'left'
-            right:'right'
-            down:'down'
-            up:'up'
-            clockwise:'shift'
-            counter_clockwise:'/'
-        player2_controls =
-            left:'a'
-            right:'d'
-            down:'o'
-            up:'w'
-            clockwise:'e'
-            counter_clockwise:'q'
+        current_controls = 'normal'
+    dvorak_checkbox.change (event) ->
+        setTimeout ->
+            enabled = dvorak_checkbox.is ':checked'
+            current_controls = if enabled then 'dvorak' else 'normal'
+            localStorage.controls = current_controls
+
+    controls =
+        dvorak:
+            player1:
+                left:'left'
+                right:'right'
+                down:'down'
+                up:'up'
+                clockwise:'shift'
+                counter_clockwise:'z'
+            player2:
+                left:'a'
+                right:'e'
+                down:'o'
+                up:','
+                clockwise:'.'
+                counter_clockwise:'\''
+        normal:
+            player1:
+                left:'left'
+                right:'right'
+                down:'down'
+                up:'up'
+                clockwise:'shift'
+                counter_clockwise:'/'
+            player2:
+                left:'a'
+                right:'d'
+                down:'s'
+                up:'w'
+                clockwise:'e'
+                counter_clockwise:'q'
 
     make_heap = (location) ->
         size = 1
@@ -167,7 +179,7 @@ $ ->
 
             if type1 is player_type and type2 is crate_type
                 player_data = get_data contact.shape1
-                player = if player_data.which is 2 then player1 else player2
+                player = if player_data.which is 1 then player1 else player2
                 hurt_player(player, contact.normalImpulse)
                 hit_this_frame = true
 
@@ -218,6 +230,8 @@ $ ->
         player1_direction = player2_position.minus(player1_position).normalize()
         center = player1_position.plus player2_position.minus(player1_position).scale(0.5)
 
+        player1_controls = controls[current_controls].player1
+        player2_controls = controls[current_controls].player2
         player1_clockwise = pressed_keys[player1_controls.clockwise]
         player2_clockwise = pressed_keys[player2_controls.clockwise]
         player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise]

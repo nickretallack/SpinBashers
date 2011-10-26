@@ -1,5 +1,7 @@
 <!doctype html>
 <html><head><title>Three!</title>
+<link rel="stylesheet" href="common/reset.css"></script>
+<link rel="stylesheet" href="common/basic.css"></script>
 <link rel="stylesheet" href="style.css"></script>
 <script src="common/minified/jquery.js"></script>
 <script src="common/keycodes.js"></script>
@@ -12,8 +14,21 @@
 </head><body>
 <div id="game"></div>
 <div id="score">
-    <p class="player1">Red Player <span id="player1_hit_points">100</span> HP</p>
-    <p class="player2">Blue Player <span id="player2_hit_points">100</span> HP</p>
+    <div class="player2">
+        <h1>Red Player: <span id="player2_hit_points">100</span> HP</h1>
+        <table class="controls">
+            <tr><td>Move <td>W A S D 
+            <tr><td>Swing the Board <td>Q E 
+        </table>
+    </div>
+    <div class="player1">
+        <h1>Blue Player: <span id="player1_hit_points">100</span> HP</h1>
+        <table class="controls">
+            <tr><td>Move <td>Up Left Down Right 
+            <tr><td>Swing the Board<td>/ Shift 
+        </table>
+    </div>
+    <p><input type="checkbox" id="use_dvorak">Use Dvorak</p>
     <p id="winner"></p>
 </div>
 </body></html>

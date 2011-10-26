@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, crate_type, damaging_impulse, default_color, default_friction, default_size, do_sleep, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, hurt_player, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, other_player, player1, player1_controls, player2, player2_controls, player_friction, player_type, players, renderer, scene, sync_list, time_step, torque, update, use_dvorak, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, controls, crate_type, current_controls, damaging_impulse, default_color, default_friction, default_size, do_sleep, dvorak_checkbox, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, hurt_player, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, other_player, player1, player2, player_friction, player_type, players, renderer, scene, sync_list, time_step, torque, update, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -9,7 +9,6 @@
     };
     _ref = [0, 1], player_type = _ref[0], crate_type = _ref[1];
     use_joint = true;
-    use_dvorak = true;
     time_step = 1.0 / 60.0;
     constraint_iterations = 10;
     gravity = V(0.0, -10.0);
@@ -34,41 +33,59 @@
       up: V(0, 1),
       down: V(0, -1)
     };
-    if (use_dvorak) {
-      player1_controls = {
-        left: 'left',
-        right: 'right',
-        down: 'down',
-        up: 'up',
-        clockwise: 'shift',
-        counter_clockwise: 'z'
-      };
-      player2_controls = {
-        left: 'a',
-        right: 'e',
-        down: 'o',
-        up: ',',
-        clockwise: '.',
-        counter_clockwise: '\''
-      };
+    dvorak_checkbox = $('#use_dvorak');
+    if (localStorage.controls === 'dvorak') {
+      current_controls = 'dvorak';
+      dvorak_checkbox.attr('checked', 'checked');
     } else {
-      player1_controls = {
-        left: 'left',
-        right: 'right',
-        down: 'down',
-        up: 'up',
-        clockwise: 'shift',
-        counter_clockwise: '/'
-      };
-      player2_controls = {
-        left: 'a',
-        right: 'd',
-        down: 'o',
-        up: 'w',
-        clockwise: 'e',
-        counter_clockwise: 'q'
-      };
+      current_controls = 'normal';
     }
+    dvorak_checkbox.change(function(event) {
+      return setTimeout(function() {
+        var enabled;
+        enabled = dvorak_checkbox.is(':checked');
+        current_controls = enabled ? 'dvorak' : 'normal';
+        return localStorage.controls = current_controls;
+      });
+    });
+    controls = {
+      dvorak: {
+        player1: {
+          left: 'left',
+          right: 'right',
+          down: 'down',
+          up: 'up',
+          clockwise: 'shift',
+          counter_clockwise: 'z'
+        },
+        player2: {
+          left: 'a',
+          right: 'e',
+          down: 'o',
+          up: ',',
+          clockwise: '.',
+          counter_clockwise: '\''
+        }
+      },
+      normal: {
+        player1: {
+          left: 'left',
+          right: 'right',
+          down: 'down',
+          up: 'up',
+          clockwise: 'shift',
+          counter_clockwise: '/'
+        },
+        player2: {
+          left: 'a',
+          right: 'd',
+          down: 's',
+          up: 'w',
+          clockwise: 'e',
+          counter_clockwise: 'q'
+        }
+      }
+    };
     make_heap = function(location) {
       var elevation, index, size, _results;
       size = 1;
@@ -206,7 +223,7 @@
         type2 = get_type(shapes[1]);
         if (type1 === player_type && type2 === crate_type) {
           player_data = get_data(contact.shape1);
-          player = player_data.which === 2 ? player1 : player2;
+          player = player_data.which === 1 ? player1 : player2;
           hurt_player(player, contact.normalImpulse);
           return hit_this_frame = true;
         }
@@ -258,7 +275,7 @@
     }
     line = make_line(player1.body.GetPosition(), player2.body.GetPosition());
     update = function() {
-      var center, direction, force_direction, item, key, player1_clockwise, player1_counter_clockwise, player1_direction, player1_position, player2_clockwise, player2_counter_clockwise, player2_position, _i, _len;
+      var center, direction, force_direction, item, key, player1_clockwise, player1_controls, player1_counter_clockwise, player1_direction, player1_position, player2_clockwise, player2_controls, player2_counter_clockwise, player2_position, _i, _len;
       if (game_over) {
         return;
       }
@@ -266,6 +283,8 @@
       player2_position = player2.body.GetPosition();
       player1_direction = player2_position.minus(player1_position).normalize();
       center = player1_position.plus(player2_position.minus(player1_position).scale(0.5));
+      player1_controls = controls[current_controls].player1;
+      player2_controls = controls[current_controls].player2;
       player1_clockwise = pressed_keys[player1_controls.clockwise];
       player2_clockwise = pressed_keys[player2_controls.clockwise];
       player1_counter_clockwise = pressed_keys[player1_controls.counter_clockwise];
