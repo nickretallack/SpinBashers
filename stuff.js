@@ -1,7 +1,7 @@
 (function() {
   var __slice = Array.prototype.slice;
   $(function() {
-    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, controls, crate_type, current_controls, damaging_impulse, default_color, default_friction, default_size, do_sleep, dvorak_checkbox, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, hurt_player, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, origin, other_player, player1, player2, player_friction, player_type, players, renderer, scene, sync_list, time_step, torque, update, use_joint, variance, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
+    var animate, camera, camera_radius, cardinals, constraint_iterations, contact_listener, controls, crate_type, current_controls, damaging_impulse, default_color, default_friction, default_size, direction, do_sleep, dvorak_checkbox, force, force_angle, game_over, get_data, get_type, gravity, hit_this_frame, hurt_player, index, joint, joint_definition, line, make_heap, make_level, make_line, make_square, max_angular_velocity, name, origin, other_player, player1, player2, player_friction, player_type, players, renderer, scene, size, sync_list, time_step, torque, update, use_joint, window_size, world, world_box, world_padder, world_padding, world_size, _ref;
     world_padder = V(world_padding, world_padding);
     origin = V(0, 0);
     window_size = function() {
@@ -102,13 +102,15 @@
       return make_heap(2);
     };
     hurt_player = function(player, damage) {
+      var winner;
       player.hit_points -= damage;
       console.log("" + player.name + " was hit for " + damage + ". " + player.hit_points + " HP remaining. " + (Date()));
       $("#player" + player.which + "_hit_points").text(Math.round(player.hit_points));
       if (player.hit_points < 0) {
+        winner = other_player(player);
         game_over = true;
-        console.log("" + player.name + " wins!");
-        return $("#winner").text("" + player.name + " wins!").addClass("player" + player.which);
+        console.log("" + winner.name + " wins!");
+        return $("#winner").text("" + winner.name + " wins!").addClass("player" + winner.which);
       }
     };
     make_square = function(_arg) {
@@ -159,9 +161,7 @@
       }
       body_definition = new b2BodyDef();
       body_definition.position = position;
-      if (typeof name !== "undefined" && name !== null) {
-        body_definition.userData = data;
-      }
+      body_definition.userData = data;
       body = world.CreateBody(body_definition);
       body.CreateShape(shape);
       if (dynamic) {
@@ -263,10 +263,23 @@
       joint_definition.Initialize(player1.body, player2.body, player1.body.GetPosition(), player2.body.GetPosition());
       joint = world.CreateJoint(joint_definition);
     }
-    variance = 30;
+    world_size = 30;
     for (index = 0; index <= 50; index++) {
       make_square({
-        position: V((Math.random() - 0.5) * variance, (Math.random() - 0.5) * variance),
+        position: V((Math.random() - 0.5) * world_size, (Math.random() - 0.5) * world_size),
+        color: 0x00ff00,
+        data: {
+          type: crate_type
+        }
+      });
+    }
+    for (name in cardinals) {
+      direction = cardinals[name];
+      size = direction.x ? V(0.1, world_size) : V(world_size, 0.1);
+      make_square({
+        dynamic: false,
+        position: direction.scale(world_size * 0.5),
+        size: size,
         color: 0x00ff00,
         data: {
           type: crate_type

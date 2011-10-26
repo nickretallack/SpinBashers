@@ -23,6 +23,7 @@ Vector::components = -> [@x, @y]
 Vector::scale = (scalar) -> @clone().multiplyScalar scalar
 Vector::plus = (other) -> @clone().addSelf other
 Vector::minus = (other) -> @plus other.scale -1
+Vector::times = (other) -> @clone().er.scale -1
 Vector::three = -> new THREE.Vector3 @components()...
 Vector::rotate = (angle) ->
     result = @clone()

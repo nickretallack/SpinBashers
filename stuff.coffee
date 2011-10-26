@@ -92,9 +92,10 @@ $ ->
         console.log "#{player.name} was hit for #{damage}. #{player.hit_points} HP remaining. #{Date()}"
         $("#player#{player.which}_hit_points").text Math.round player.hit_points
         if player.hit_points < 0
+            winner = other_player player
             game_over = true
-            console.log "#{player.name} wins!"
-            $("#winner").text("#{player.name} wins!").addClass("player#{player.which}")
+            console.log "#{winner.name} wins!"
+            $("#winner").text("#{winner.name} wins!").addClass("player#{winner.which}")
 
     make_square = ({size, position, friction, dynamic, color, data}) ->
         size ?= default_size
@@ -116,8 +117,7 @@ $ ->
             shape.friction = friction
         body_definition = new b2BodyDef()
         body_definition.position = position
-        if name?
-            body_definition.userData = data
+        body_definition.userData = data
 
         body = world.CreateBody body_definition
         body.CreateShape shape
@@ -184,7 +184,7 @@ $ ->
                 hit_this_frame = true
 
     world.SetContactListener contact_listener
-    
+
     player1 = make_square
         position:V(-2, 2)
         color:0x0000ff
@@ -213,13 +213,26 @@ $ ->
             player1.body.GetPosition(), player2.body.GetPosition()
         joint = world.CreateJoint joint_definition
 
-    variance = 30
+    world_size = 30
     for index in [0..50]
         make_square
-            position:V((Math.random()-0.5)*variance, (Math.random()-0.5)*variance)
+            position:V((Math.random()-0.5)*world_size, (Math.random()-0.5)*world_size)
             color:0x00ff00
             data:
                 type:crate_type
+
+    # make arena walls
+    for name, direction of cardinals
+        size = if direction.x then V 0.1, world_size else V world_size, 0.1
+        make_square
+            dynamic:false
+            position: direction.scale world_size*0.5
+            size: size
+            color:0x00ff00
+            data:
+                type:crate_type
+
+    
 
     line = make_line player1.body.GetPosition(), player2.body.GetPosition()
 

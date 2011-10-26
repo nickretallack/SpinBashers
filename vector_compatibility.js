@@ -49,6 +49,9 @@
   Vector.prototype.minus = function(other) {
     return this.plus(other.scale(-1));
   };
+  Vector.prototype.times = function(other) {
+    return this.clone().er.scale(-1);
+  };
   Vector.prototype.three = function() {
     return (function(func, args, ctor) {
       ctor.prototype = func.prototype;
